@@ -39,7 +39,7 @@ class Agent:
         plt.plot(episode_rewards)
         plt.show()
 
-    def test(self):
-        episode_rewards = [self.play(train=False) for _ in range(100)]
+    def test(self, episodes: int = 100):
+        episode_rewards = [self.play(train=False) for _ in range(episodes)]
         print('平均回合奖励 = {} / {} = {}'.format(sum(episode_rewards),
                                              len(episode_rewards), np.mean(episode_rewards)))

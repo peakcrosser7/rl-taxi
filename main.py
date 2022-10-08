@@ -35,6 +35,7 @@ env.step(0)
 
 env.render()
 
+# 使用epsilon-贪婪策略
 policy = EpsilonGreedyPolicy()
 
 agent = SarsaAgent(env, policy)
