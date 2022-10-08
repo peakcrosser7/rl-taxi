@@ -15,7 +15,7 @@ class QLearningAgent(Agent):
         self.action_n: int = env.action_space.n
         self.Q: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
 
-    def learn(self, state, action, reward, next_state, done, **kwargs):
+    def learn(self, state, action, reward, next_state, done):
         u = reward + self.gamma * self.Q[next_state].max() * (1. - done)
         td_error = u - self.Q[state, action]
         self.Q[state, action] += self.learning_rate * td_error

@@ -15,7 +15,7 @@ class DoubleQLearningAgent(Agent):
         self.Q0: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
         self.Q1: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
 
-    def learn(self, state, action, reward, next_state, done, **kwargs):
+    def learn(self, state, action, reward, next_state, done):
         if np.random.randint(2):
             self.Q0, self.Q1 = self.Q1, self.Q0
         a = self.Q0[next_state].argmax()

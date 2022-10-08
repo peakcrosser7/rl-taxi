@@ -13,14 +13,8 @@ class Agent:
         """
         # 强化学习使用的游戏环境
         self.env: gym.Env = env
+        # 使用的策略对象
         self.policy_obj: PolicyObj = policy_obj
-
-        # # 衰减因子
-        # self.gamma: float = gamma
-        # # 学习速率参数alpha
-        # self.learning_rate: float = learning_rate
-        # # 动作维度
-        # self.action_n: int = env.action_space.n
 
     def policy(self, train: bool, state, **kwargs):
         if train:
@@ -30,20 +24,6 @@ class Agent:
 
     def play(self, train, render=False) -> int:
         pass
-        # episode_reward = 0
-        # observation = self.env.reset()
-        # while True:
-        #     if render:
-        #         self.env.render()
-        #     action = self.decide(observation)
-        #     next_observation, reward, done, _ = self.env.step(action)
-        #     episode_reward += reward
-        #     if train:
-        #         self.learn(observation, action, reward, next_observation, done)
-        #     if done:
-        #         break
-        #     observation = next_observation
-        # return episode_reward
 
     def train(self, episodes: int):
         """
