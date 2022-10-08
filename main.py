@@ -53,6 +53,6 @@ agent = QLearningAgent(env, policy)
 agent.train(4000)
 agent.test()
 
-agent = DoubleQLearningAgent(env)
+agent = DoubleQLearningAgent(env, policy)
 agent.train(9000)
 agent.test()

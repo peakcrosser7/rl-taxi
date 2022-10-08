@@ -52,7 +52,7 @@ class SarsaAgent(Agent):
             next_state, reward, done, _ = self.env.step(action)
             episode_reward += reward
             # 根据新的状态进行决策(终止状态时此步无意义)
-            next_action = self.policy(train, state, Q=self.Q, action_n=self.action_n)
+            next_action = self.policy(train, next_state, Q=self.Q, action_n=self.action_n)
             if train:
                 self.learn(state, action, reward, next_state, next_action, done)
             if done:

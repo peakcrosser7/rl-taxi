@@ -26,7 +26,7 @@ class QLearningAgent(Agent):
         while True:
             if render:
                 self.env.render()
-            action = self.policy(train,state,  Q=self.Q, action_n=self.action_n)
+            action = self.policy(train, state, Q=self.Q, action_n=self.action_n)
             next_state, reward, done, _ = self.env.step(action)
             episode_reward += reward
             if train:
