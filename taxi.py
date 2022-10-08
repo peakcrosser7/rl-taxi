@@ -1,3 +1,5 @@
+# 原代码
+
 # %% [markdown]
 # # 的士调度 Taxi-v3
 # %%
@@ -100,7 +102,7 @@ agent.epsilon = 0.  # 取消探索
 
 episode_rewards = [play_sarsa(env, agent) for _ in range(100)]
 print('平均回合奖励 = {} / {} = {}'.format(sum(episode_rewards),
-                                           len(episode_rewards), np.mean(episode_rewards)))
+                                     len(episode_rewards), np.mean(episode_rewards)))
 
 # %% [markdown]
 # 显示最优价值估计
@@ -175,13 +177,12 @@ for episode in range(episodes):
 plt.plot(episode_rewards)
 plt.show()
 
-
 # 测试
 agent.epsilon = 0.  # 取消探索
 
 episode_rewards = [play_qlearning(env, agent) for _ in range(100)]
 print('平均回合奖励 = {} / {} = {}'.format(sum(episode_rewards),
-                                           len(episode_rewards), np.mean(episode_rewards)))
+                                     len(episode_rewards), np.mean(episode_rewards)))
 
 
 # %% [markdown]
@@ -222,13 +223,12 @@ for episode in range(episodes):
 plt.plot(episode_rewards)
 plt.show()
 
-
 # 测试
 agent.epsilon = 0.  # 取消探索
 
 episode_rewards = [play_qlearning(env, agent) for _ in range(100)]
 print('平均回合奖励 = {} / {} = {}'.format(sum(episode_rewards),
-                                           len(episode_rewards), np.mean(episode_rewards)))
+                                     len(episode_rewards), np.mean(episode_rewards)))
 
 
 # %% [markdown]
@@ -273,13 +273,12 @@ for episode in range(episodes):
 plt.plot(episode_rewards)
 plt.show()
 
-
 # 测试
 agent.epsilon = 0.  # 取消探索
 
 episode_rewards = [play_qlearning(env, agent) for _ in range(100)]
 print('平均回合奖励 = {} / {} = {}'.format(sum(episode_rewards),
-                                           len(episode_rewards), np.mean(episode_rewards)))
+                                     len(episode_rewards), np.mean(episode_rewards)))
 
 
 # %% [markdown]
@@ -322,10 +321,9 @@ for episode in range(episodes):
 plt.plot(episode_rewards)
 plt.show()
 
-
 # 测试
 agent.epsilon = 0.  # 取消探索
 
 episode_rewards = [play_sarsa(env, agent, train=False) for _ in range(100)]
 print('平均回合奖励 = {} / {} = {}'.format(sum(episode_rewards),
-                                           len(episode_rewards), np.mean(episode_rewards)))
+                                     len(episode_rewards), np.mean(episode_rewards)))

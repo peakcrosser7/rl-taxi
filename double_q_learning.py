@@ -6,10 +6,10 @@ from agent import Agent
 class DoubleQLearningAgent(Agent):
     def __init__(self, env, gamma=0.9, learning_rate=0.1, epsilon=.01):
         Agent.__init__(self, env, gamma, learning_rate, epsilon)
-        self.q0 = np.zeros((env.observation_space.n, env.action_space.n))
-        self.q1 = np.zeros((env.observation_space.n, env.action_space.n))
+        self.q0: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
+        self.q1: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
 
-    def decide(self, state):
+    def decide(self, state) -> np.intc:
         if np.random.uniform() > self.epsilon:
             action = (self.q0 + self.q1)[state].argmax()
         else:
