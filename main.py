@@ -3,6 +3,7 @@ import gym
 import numpy as np
 from double_q_learning import DoubleQLearningAgent
 from expected_sarsa import ExpectedSarsaAgent
+from policy import EpsilonGreedyPolicy
 from q_learning import QLearningAgent
 from sarsa import SarsaAgent
 from sarsa_lambda import SarsaLambdaAgent
@@ -34,19 +35,21 @@ env.step(0)
 
 env.render()
 
-agent = SarsaAgent(env)
+policy = EpsilonGreedyPolicy()
+
+agent = SarsaAgent(env, policy)
 agent.train(3000)
 agent.test()
 
-agent = ExpectedSarsaAgent(env)
+agent = ExpectedSarsaAgent(env, policy)
 agent.train(5000)
 agent.test()
 
-agent = SarsaLambdaAgent(env)
+agent = SarsaLambdaAgent(env, policy)
 agent.train(5000)
 agent.test()
 
-agent = QLearningAgent(env)
+agent = QLearningAgent(env, policy)
 agent.train(4000)
 agent.test()
 

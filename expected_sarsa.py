@@ -1,23 +1,24 @@
 import numpy as np
 
 from agent import Agent
+from policy import EpsilonGreedyPolicy
 
 
 class ExpectedSarsaAgent(Agent):
-    def __init__(self, env, gamma=0.9, learning_rate=0.1, epsilon=0.01):
-        Agent.__init__(self, env, gamma, learning_rate, epsilon)
-        self.q: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
+    def __init__(self, env, policy_obj: EpsilonGreedyPolicy, gamma=0.9, learning_rate=0.1):
+        Agent.__init__(self, env, policy_obj)
+        self.epsilon = policy_obj.epsilon
+        # 衰减因子
+        self.gamma: float = gamma
+        # 学习速率参数alpha
+        self.learning_rate: float = learning_rate
+        # 动作维度
+        self.action_n: int = env.action_space.n
+        self.Q: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
 
-    def decide(self, state) -> np.intc:
-        if np.random.uniform() > self.epsilon:
-            action = self.q[state].argmax()
-        else:
-            action = np.random.randint(self.action_n)
-        return action
-
-    def learn(self, state, action, reward, next_state, done, **kwargs):
-        v = (self.q[next_state].mean() * self.epsilon +
-             self.q[next_state].max() * (1. - self.epsilon))
+    def learn(self, state, action, reward, next_state, done):
+        v = (self.Q[next_state].mean() * self.epsilon +
+             self.Q[next_state].max() * (1. - self.epsilon))
         u = reward + self.gamma * v * (1. - done)
-        td_error = u - self.q[state, action]
-        self.q[state, action] += self.learning_rate * td_error
+        td_error = u - self.Q[state, action]
+        self.Q[state, action] += self.learning_rate * td_error
