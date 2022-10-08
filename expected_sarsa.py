@@ -3,7 +3,7 @@ import numpy as np
 from agent import Agent
 
 
-class ExpectedSARSAAgent(Agent):
+class ExpectedSarsaAgent(Agent):
     def __init__(self, env, gamma=0.9, learning_rate=0.1, epsilon=0.01):
         Agent.__init__(self, env, gamma, learning_rate, epsilon)
         self.q: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
