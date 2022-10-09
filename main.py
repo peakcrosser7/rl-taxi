@@ -1,12 +1,14 @@
 # 的士调度 Taxi-v3
+
 import gym
 import numpy as np
-from double_q_learning import DoubleQLearningAgent
-from expected_sarsa import ExpectedSarsaAgent
+
 from policy import EpsilonGreedyPolicy
-from q_learning import QLearningAgent
-from sarsa import SarsaAgent
-from sarsa_lambda import SarsaLambdaAgent
+from agents.double_q_learning import DoubleQLearningAgent
+from agents.expected_sarsa import ExpectedSarsaAgent
+from agents.q_learning import QLearningAgent
+from agents.sarsa import SarsaAgent
+from agents.sarsa_lambda import SarsaLambdaAgent
 
 # 环境使用
 np.random.seed(0)
@@ -35,15 +37,11 @@ env.step(0)
 
 env.render()
 
-# 使用epsilon-贪婪策略
-policy = EpsilonGreedyPolicy()
+# 使用ε-贪婪策略
+policy = EpsilonGreedyPolicy(epsilon=0.01)
 
 agent = SarsaAgent(env, policy)
 agent.train(3000)
-agent.test()
-
-agent = ExpectedSarsaAgent(env, policy)
-agent.train(5000)
 agent.test()
 
 agent = SarsaLambdaAgent(env, policy)
@@ -52,6 +50,10 @@ agent.test()
 
 agent = QLearningAgent(env, policy)
 agent.train(4000)
+agent.test()
+
+agent = ExpectedSarsaAgent(env, policy)
+agent.train(5000)
 agent.test()
 
 agent = DoubleQLearningAgent(env, policy)

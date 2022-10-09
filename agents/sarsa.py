@@ -1,6 +1,6 @@
 import numpy as np
 
-from agent import Agent
+from agents.agent import Agent
 
 
 # SARSA 算法
@@ -13,7 +13,7 @@ class SarsaAgent(Agent):
 
         # 衰减因子
         self.gamma: float = gamma
-        # 学习速率参数alpha
+        # 学习速率参数α
         self.learning_rate: float = learning_rate
         # 动作维度
         self.action_n: int = env.action_space.n
@@ -23,13 +23,13 @@ class SarsaAgent(Agent):
         self.Q: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
 
     def learn(self, state, action, reward, next_state, next_action, done):
-        # 根据epsilon-贪婪策略进行策略迭代
-        # Q(S,A)=Q(S-A)+alpha(R+gamma*Q(S',A')-Q(S,A))
-        # u=R+gamma*Q(S',A')
+        # 根据ε-贪婪策略进行策略迭代
+        # Q(S,A)=Q(S-A)+α(R+γ*Q(S',A')-Q(S,A))
+        # u=R+γ*Q(S',A')
         u = reward + self.gamma * self.Q[next_state, next_action] * (1. - done)
-        # td_error=R+gamma*Q(S',A')-Q(S,A)
+        # td_error=R+γ*Q(S',A')-Q(S,A)
         td_error = u - self.Q[state, action]
-        # Q(S,A)+=alpha(R+gamma*Q(S',A')-Q(S,A))
+        # Q(S,A)+=α*(R+γ*Q(S',A')-Q(S,A))
         self.Q[state, action] += self.learning_rate * td_error
 
     def play(self, train=False, render=False) -> int:
@@ -44,7 +44,7 @@ class SarsaAgent(Agent):
         # 初始状态
         state = self.env.reset()
         # 初始行为:此时因初始Q表全为0而选择第一个行为
-        action: np.intc = self.policy(train, state, Q=self.Q, action_n=self.action_n)
+        action: np.intc = self.policy(train, state, self.Q)
         while True:
             if render:
                 self.env.render()
@@ -52,7 +52,7 @@ class SarsaAgent(Agent):
             next_state, reward, done, _ = self.env.step(action)
             episode_reward += reward
             # 根据新的状态进行决策(终止状态时此步无意义)
-            next_action = self.policy(train, next_state, Q=self.Q, action_n=self.action_n)
+            next_action = self.policy(train, next_state, self.Q)
             if train:
                 self.learn(state, action, reward, next_state, next_action, done)
             if done:

@@ -1,6 +1,6 @@
 import numpy as np
 
-from sarsa import SarsaAgent
+from agents.sarsa import SarsaAgent
 
 
 class SarsaLambdaAgent(SarsaAgent):
@@ -11,15 +11,15 @@ class SarsaLambdaAgent(SarsaAgent):
         self.E: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
 
     def learn(self, state, action, reward, next_state, next_action, done):
-        # for e in E: E(s,a)=lambda*gamma*E(s,a)
+        # for e in E: E(s,a)=λ*γ*E(s,a)
         # 此处和伪代码不同,采用了先更新E的方式,因为初始E表全为0因此下句无效,从而不改变运算结果
         self.E *= (self.lamda * self.gamma)
         # E(S,A)=E(S,A)+1
         self.E[state, action] += 1.
 
-        # delta=R+gamma*Q(S',A')-Q(S,A)
+        # δ=R+γ*Q(S',A')-Q(S,A)
         delta = reward + self.gamma * self.Q[next_state, next_action] * (1. - done) - self.Q[state, action]
-        # for q in Q: Q(s,a)=Q(s,a)+alpha*delta*E(s,a)
+        # for q in Q: Q(s,a)=Q(s,a)+α*δ*E(s,a)
         self.Q += self.learning_rate * self.E * delta
         if done:
             self.E *= 0.

@@ -1,26 +1,45 @@
 import numpy as np
 
-from agent import Agent
+from agents.agent import Agent
+from policy import GreedyPolicy
 
 
 class DoubleQLearningAgent(Agent):
-    def __init__(self, env, policy_obj, gamma=0.9, learning_rate=0.1):
-        Agent.__init__(self, env, policy_obj)
+    def __init__(self, env, behave_policy, borrow_policy=GreedyPolicy, gamma=0.9, learning_rate=0.1):
+        Agent.__init__(self, env, behave_policy)
         # 衰减因子
         self.gamma: float = gamma
-        # 学习速率参数alpha
+        # 学习速率参数α
         self.learning_rate: float = learning_rate
         # 动作维度
         self.action_n: int = env.action_space.n
+        # 两个Q表
         self.Q0: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
         self.Q1: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
+        # 借鉴策略对象
+        self.borrow_policy = borrow_policy
+
+    def behavioral_strategy(self, train: bool, state, Q):
+        return self.policy(train, state, Q)
+
+    def borrowing_strategy(self, state, Q):
+        """
+        借鉴策略
+        使用贪婪策略
+        """
+        return self.borrow_policy.policy(state, Q)
 
     def learn(self, state, action, reward, next_state, done):
+        # 1/2 概率交换两个Q表
         if np.random.randint(2):
             self.Q0, self.Q1 = self.Q1, self.Q0
-        a = self.Q0[next_state].argmax()
+        # a'=argmax(Q0(s_{t+1},a))
+        a = self.borrowing_strategy(next_state, self.Q0)
+        # u=R_{t+1}+γ*max_{a'}(Q1(S_{t+1},a'))
         u = reward + self.gamma * self.Q1[next_state, a] * (1. - done)
+        # td_error=R_{t+1}+γ*max_{a'}(Q1(S_{t+1},a'))-Q0(S_t,A_t)
         td_error = u - self.Q0[state, action]
+        # Q0(S_t,A_t)=Q0(S_t,A_t)+α(R_{t+1}+γ*max_{a'}(Q1(S_{t+1},a'))-Q0(S_t,A_t))
         self.Q0[state, action] += self.learning_rate * td_error
 
     def play(self, train=False, render=False) -> int:
@@ -29,7 +48,7 @@ class DoubleQLearningAgent(Agent):
         while True:
             if render:
                 self.env.render()
-            action = self.policy(train, state, Q=self.Q0 + self.Q1, action_n=self.action_n)
+            action = self.behavioral_strategy(train, state, Q=self.Q0 + self.Q1)
             next_state, reward, done, _ = self.env.step(action)
             episode_reward += reward
             if train:

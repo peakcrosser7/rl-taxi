@@ -2,11 +2,11 @@ import gym
 import numpy as np
 from matplotlib import pyplot as plt
 
-from policy import PolicyObj
+from policy import GreedyPolicy
 
 
 class Agent:
-    def __init__(self, env: gym.Env, policy_obj: PolicyObj):
+    def __init__(self, env: gym.Env, policy_obj):
         """
         :param env: 强化学习使用的游戏环境
         :param policy_obj: 策略方法对象
@@ -14,13 +14,13 @@ class Agent:
         # 强化学习使用的游戏环境
         self.env: gym.Env = env
         # 使用的策略对象
-        self.policy_obj: PolicyObj = policy_obj
+        self.policy_obj = policy_obj
 
-    def policy(self, train: bool, state, **kwargs):
+    def policy(self, train: bool, state, Q):
         if train:
-            return self.policy_obj.policy(state, **kwargs)
+            return self.policy_obj.policy(state, Q)
         else:
-            return self.policy_obj.best_policy(state, **kwargs)
+            return GreedyPolicy.policy(state, Q)
 
     def play(self, train, render=False) -> int:
         pass
