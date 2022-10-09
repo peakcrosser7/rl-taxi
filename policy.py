@@ -1,10 +1,13 @@
+from abc import abstractmethod
+
 import numpy as np
 
 
 class PolicyObj:
+    @abstractmethod
     def policy(self, state, Q):
         """用于学习的策略函数"""
-        pass
+        raise NotImplementedError
 
 
 class GreedyPolicy(PolicyObj):

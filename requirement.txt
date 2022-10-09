@@ -1,0 +1,8 @@
+numpy
+matplotlib
+pandas
+gym==0.19
+pygame
+tensorflow==2.10
+keras-rl2
+scipy

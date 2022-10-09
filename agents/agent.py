@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 import gym
 import numpy as np
 from matplotlib import pyplot as plt
@@ -22,8 +24,9 @@ class Agent:
         else:
             return GreedyPolicy.policy(state, Q)
 
+    @abstractmethod
     def play(self, train, render=False) -> int:
-        pass
+        raise NotImplementedError
 
     def train(self, episodes: int):
         """
