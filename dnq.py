@@ -9,39 +9,58 @@ from keras.optimizers import Adam
 
 
 class DQN:
-    def __init__(self, loadweight):
-        self.loadweight = loadweight
+    def __init__(self, load_weight):
+        self.load_weight = load_weight
         self.env = gym.make("Taxi-v3")
         self.model = self.build_model()
         self.target_model = self.build_model()
         self.update_target_model()
 
+        # 经验回放机制使用的记忆存储池
         self.memory_buffer = deque(maxlen=2000)
         self.gamma = 0.95
         self.epsilon_decay = 0.01
         self.epsilon_min = 0.001
         self.env._max_episode_steps = 5000000000
-        if self.loadweight:
+        if self.load_weight:
             self.epsilon = self.epsilon_min
         else:
             self.epsilon = 1
 
     def build_model(self):
+        """构建深度学习网络"""
+        # 输入的维度,即环境可能的状态的维度,taxi-v3游戏中是1维
         input_length = 1
         action_size = self.env.action_space.n
+        # 输入层:初始化深度学习网络输入层的tensor,输入是1为的向量
         input = Input(shape=(input_length,), name="input")
+        # 嵌入层:模型第一层,将正整数(下标)转换为具有固定大小的向量
+        # input_dim:下标的范围,是taxi的状态数量500
+        # output_dim:转换成的向量的维度,是全连接嵌入的维度
+        # input_length:输入序列的长度
+        # 对输入向量进行嵌入层处理:将500种1维状态转换为500种10维向量
         layer = Embedding(500, 10, input_length=1)(input)
+        # 重构层:将一定维度的多维矩阵重新构造为一个新的元素数量相同但是维度尺寸不同的矩阵
+        # target_shape:目标尺寸为10
+        # 对嵌入层输出重构,将原来500*1的10维向量矩阵其转换为500*10的矩阵
         layer = Reshape((10,))(layer)
 
+        # 全连接层
+        # units:输出空间维度,即神经元个数
+        # activation:激活函数
         layer = Dense(50, activation="relu")(layer)
         layer = Dense(50, activation="relu")(layer)
         layer = Dense(50, activation="relu")(layer)
-
+        # 输出全连接层: 输出空间维度为agent的行为的个数
         output = Dense(action_size, activation='linear')(layer)
+        # 构建网络模型
         model = Model(inputs=[input], outputs=[output])
+        # 输出网络模型的信息状况
         model.summary()
-        if self.loadweight:
-            model.load_weights(weightname)
+        # 加载权重文件中的数据
+        if self.load_weight:
+            # 加载网络中所有层的权重数据
+            model.load_weights(weight_name)
         return model
 
     def update_target_model(self):
@@ -163,7 +182,7 @@ class DQN:
                     return history
                 print('Episode: {} | Episode reward: {} | loss: {:.4f} | e:{:.2f}'.format(i, reward_sum, loss,
                                                                                           self.epsilon))
-            self.model.save_weights(weightname)
+            self.model.save_weights(weight_name)
 
         return history
 
@@ -200,7 +219,7 @@ class DQN:
 
 
 if __name__ == '__main__':
-    weightname = "dqn_Taxi-v3_weights.h5"
+    weight_name = "dqn_Taxi-v3_weights.h5"
     model = DQN(True)
     max_action_number = 5000
     history = model.train(500, 16)
