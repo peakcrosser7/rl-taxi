@@ -12,8 +12,11 @@ class DQN:
     def __init__(self, load_weight):
         self.load_weight = load_weight
         self.env = gym.make("Taxi-v3")
+        # 训练网络模型
         self.model = self.build_model()
+        # 目标网络模型
         self.target_model = self.build_model()
+        # 更新目标网络模型的权重参数
         self.update_target_model()
 
         # 经验回放机制使用的记忆存储池
@@ -64,8 +67,8 @@ class DQN:
         return model
 
     def update_target_model(self):
-        """更新target_model
-        """
+        """更新目标网络模型的权重参数"""
+        # 使用训练网络的权重到目标网络
         self.target_model.set_weights(self.model.get_weights())
 
     def egreedy_action(self, state):
