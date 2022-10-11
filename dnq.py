@@ -19,7 +19,7 @@ class DQN:
         # 更新目标网络模型的权重参数
         self.update_target_model()
 
-        # 经验回放机制使用的记忆存储池
+        # 经验回放机制使用的经验池
         self.memory_buffer = deque(maxlen=2000)
         self.gamma = 0.95
         self.epsilon_decay = 0.01
@@ -84,6 +84,7 @@ class DQN:
         if np.random.rand() <= self.epsilon:
             return random.randint(0, 5)
         else:
+            # 根据输入得到预测的数组
             q_values = self.model.predict([int(state)])[0]
             return np.argmax(q_values)
 
@@ -114,73 +115,86 @@ class DQN:
             batch: batch size
 
         Returns:
-            X: states
-            y: [Q_value1, Q_value2]
+            X: states 采样的当前状态数组
+            y: [Q_value1, Q_value2] 经采样处理后得到的训练网络当前状态的行为价值表
         """
-        # 从经验池中随机采样一个batch
+        # 从经验池中随机采样一个batch(批次)
         data = random.sample(self.memory_buffer, batch)
 
-        # 生成Q_target。
+        # 生成Q_target
+        # 从batch中提取出所有的当前状态和下一状态
         states = np.array([d[0] for d in data])
         next_states = np.array([d[3] for d in data])
+        # 训练网络当前状态预测得到的行为价值表
         y = self.model.predict(states)
+        # 目标网络下一状态预测得到的行为价值表
         q = self.target_model.predict(next_states)
 
+        # 遍历每个采样的数据
         for i, (_, action, reward, _, done) in enumerate(data):
             target = reward
             if not done:
+                # target更新采用Q-Learning的思想
+                # r_j+γ*max_a'(Q'(S',a')
                 target += self.gamma * np.amax(q[i])
+            # 更新训练网络当前状态的行为价值
             y[i][action] = target
         return states, y
 
-    def train(self, episode, batch):
+    def train(self, episode, batch_size):
         """训练
         Arguments:
             episode: 游戏次数
-            batch： batch size
+            batch_size： batch size
 
         Returns:
             history: 训练记录
         """
 
+        # 配置网络以用于训练
+        # loss:损失函数,mse:均方误差
+        # optimizer:优化器,通过比较预测和损耗函数来优化输入权重
         self.model.compile(loss='mse', optimizer=Adam(1e-3))
 
+        # 每训练5次后的历史
         history = {'episode': [], 'Episode_reward': [], 'Loss': []}
 
-        count = 0
+        count = 0   # 训练次数
         for i in range(episode):
-            observation = self.env.reset()
-            reward_sum = 0
-            loss = np.infty
+            state = self.env.reset()
+            reward_sum = 0      # 一次游戏的总回报
+            loss = np.infty     # 初始化为正无穷
             done = False
-            action_number = 0
+            action_number = 0   # 一次游戏中行为的总次数
             while not done and action_number < max_action_number:
                 # 通过贪婪选择法ε-greedy选择action。
-                x = observation
+                x = state
                 action = self.egreedy_action(x)
-                observation, reward, done, _ = self.env.step(action)
-                # 将数据加入到经验池。
+                state, reward, done, _ = self.env.step(action)
                 reward_sum += reward
-                self.remember(x, action, reward, observation, done)
+                # 将数据加入到经验池
+                self.remember(x, action, reward, state, done)
 
-                if len(self.memory_buffer) > batch:
-                    # 训练
-                    X, y = self.process_batch(batch)
+                # 当经验池值数据足够batch_size大小时进行训练
+                if len(self.memory_buffer) > batch_size:
+                    # X:采样的状态数组,y:训练网络当前状态的行为价值表
+                    X, y = self.process_batch(batch_size)
+                    # 对数据进行训练
                     loss = self.model.train_on_batch(X, y)
 
                     count += 1
-
-                    # 固定次数更新target_model
-                    if count != 0 and count % batch == 0:
+                    # 固定次数更新目标网络
+                    if count != 0 and count % batch_size == 0:
                         self.update_target_model()
                 action_number += 1
-            # 减小egreedy的epsilon参数。
+            # 减小epsilon-greedy的epsilon参数
             self.update_epsilon(i)
             if i % 5 == 0:
                 history['episode'].append(i)
                 history['Episode_reward'].append(reward_sum)
                 history['Loss'].append(loss)
             if i % 10 == 0:
+                # 若总回报超过6返回
                 if reward_sum > 6:
                     return history
                 print('Episode: {} | Episode reward: {} | loss: {:.4f} | e:{:.2f}'.format(i, reward_sum, loss,
@@ -193,7 +207,7 @@ class DQN:
         """使用训练好的模型测试游戏.
         """
 
-        observation = self.env.reset()
+        state = self.env.reset()
 
         count = 0
         reward_sum = 0
@@ -203,10 +217,12 @@ class DQN:
 
             self.env.render()
 
-            x = observation
+            x = state
+            # 训练网络当前状态预测得到的行为价值表
             q_values = self.model.predict([int(x)])[0]
+            # 取最大价值的动作
             action = np.argmax(q_values)
-            observation, reward, done, _ = self.env.step(action)
+            state, reward, done, _ = self.env.step(action)
 
             count += 1
             reward_sum += reward
@@ -216,7 +232,7 @@ class DQN:
                 random_episodes += 1
                 reward_sum = 0
                 count = 0
-                observation = self.env.reset()
+                state = self.env.reset()
 
         self.env.close()
 
