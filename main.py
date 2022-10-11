@@ -3,6 +3,7 @@
 import gym
 import numpy as np
 
+import taxi_env
 from agents.agent import Agent
 from policy import EpsilonGreedyPolicy
 from agents.double_q_learning import DoubleQLearningAgent
@@ -14,7 +15,7 @@ from agents.sarsa_lambda import SarsaLambdaAgent
 # 环境使用
 np.random.seed(0)
 
-env: gym.Env = gym.make('Taxi-v3')
+env: gym.Env = taxi_env.TaxiEnv()
 env.seed(0)
 print('观察空间 = {}'.format(env.observation_space))
 print('动作空间 = {}'.format(env.action_space))
@@ -39,7 +40,7 @@ env.step(0)
 env.render()
 
 # 使用ε-贪婪策略
-policy = EpsilonGreedyPolicy(epsilon=0.01)
+# policy = EpsilonGreedyPolicy(epsilon=0.01)
 
 
 def taxi(agent: Agent, train_times):
@@ -48,12 +49,12 @@ def taxi(agent: Agent, train_times):
     agent.test()
 
 
-taxi(SarsaAgent(env, policy), 3000)
-
-taxi(SarsaLambdaAgent(env, policy), 5000)
-
-taxi(QLearningAgent(env, policy), 4000)
-
-taxi(ExpectedSarsaAgent(env, policy), 5000)
-
-taxi(DoubleQLearningAgent(env, policy), 9000)
+# taxi(SarsaAgent(env, policy), 3000)
+#
+# taxi(SarsaLambdaAgent(env, policy), 5000)
+#
+# taxi(QLearningAgent(env, policy), 4000)
+#
+# taxi(ExpectedSarsaAgent(env, policy), 5000)
+#
+# taxi(DoubleQLearningAgent(env, policy), 9000)
