@@ -109,10 +109,10 @@ class TaxiEnv(discrete.DiscreteEnv):
                             if action == 0:  # 向下
                                 new_row = min(row + 1, max_row)
                             elif action == 1:  # 向上
-                                new_row = max(row - 1, 0)  # 向左且左边可通行
-                            if action == 2 and self.desc[1 + row, 2 * col + 2] == b":":
-                                new_col = min(col + 1, max_col)  # 向右且右边可通行
-                            elif action == 3 and self.desc[1 + row, 2 * col] == b":":
+                                new_row = max(row - 1, 0)
+                            if action == 2 and self.desc[1 + row, 2 * col + 2] == b":":  # 向右且右边可通行
+                                new_col = min(col + 1, max_col)
+                            elif action == 3 and self.desc[1 + row, 2 * col] == b":":  # 向左且左边可通行
                                 new_col = max(col - 1, 0)
                             elif action == 4:  # pickup 接乘客
                                 # 出租车没载乘客且出租车在乘客位置, 则乘客上车
