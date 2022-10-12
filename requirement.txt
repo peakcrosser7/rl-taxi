@@ -6,3 +6,4 @@ pygame
 tensorflow==2.10
 keras-rl2
 scipy
+keyboard

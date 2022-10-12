@@ -1,5 +1,7 @@
+import copy
+import os
+import platform
 import sys
-from copy import copy
 from enum import Enum
 from typing import List, Tuple, Dict
 
@@ -9,11 +11,11 @@ from gym import utils
 
 class TaxiEnv:
     class EnumAction(Enum):
-        DOWN = 0,
-        UP = 1,
-        RIGHT = 2,
-        LEFT = 3,
-        PICK_UP = 4,
+        DOWN = 0
+        UP = 1
+        RIGHT = 2
+        LEFT = 3
+        PICK_UP = 4
         DROP_OFF = 5
 
     class State:
@@ -45,8 +47,9 @@ class TaxiEnv:
 
         self._elapsed_steps = 0
         self._total_reward = 0
+        self._done = False
         self._origin_state = self._init_state()
-        self._current_state = copy(self._origin_state)
+        self._current_state = copy.deepcopy(self._origin_state)
         self._last_action = None
 
     def _init_state(self) -> State:
@@ -71,7 +74,7 @@ class TaxiEnv:
         self._elapsed_steps = 0
         self._total_reward = 0
         self._origin_state = self._init_state()
-        self._current_state = copy(self._origin_state)
+        self._current_state = copy.deepcopy(self._origin_state)
         self._last_action = None
 
     def encode(self, state: State):
@@ -128,26 +131,29 @@ class TaxiEnv:
         return delivered
 
     def _step(self, action: int) -> Tuple[int, int, bool, dict]:
-        act = self.EnumAction(action)
-        reward = -1
-        done = False
         state = self._current_state
+        reward = -1
+        if self._done:
+            return int(self.encode(state)), reward, self._done, {}
+
         taxi_loc = (row, col) = (state.taxi_row, state.taxi_col)
 
+        act = self.EnumAction(action)
         if act == self.EnumAction.DOWN:
-            state.taxi_row = min(row, self.num_rows - 1)
+            state.taxi_row = min(row + 1, self.num_rows - 1)
         elif act == self.EnumAction.UP:
-            state.taxi_row = max(row, 0)
+            state.taxi_row = max(row - 1, 0)
         elif act == self.EnumAction.RIGHT and self.desc[1 + row, 2 * col + 2] == b":":
             state.taxi_col = min(col + 1, self.num_cols - 1)
         elif act == self.EnumAction.LEFT and self.desc[1 + row, 2 * col] == b":":
-            state.taxi_col = min(col - 1, 0)
+            state.taxi_col = max(col - 1, 0)
         elif act == self.EnumAction.PICK_UP:
             match = False
             for i in range(self.num_pass):
                 pass_idx = state.pass_idxes[i]
                 if (not self._in_taxi(pass_idx)) and taxi_loc == self.locs[pass_idx]:
                     self._get_in_taxi(state.pass_idxes, i)
+                    reward += 20
                     match = True
                     break  # 一步只接一个人
             if not match:
@@ -159,10 +165,10 @@ class TaxiEnv:
                 dst_idx = state.dst_idxes[i]
                 if taxi_loc == self.locs[dst_idx] and self._in_taxi(pass_idx):
                     self._get_off_taxi(state.pass_idxes, i, dst_idx)
-                    reward += 20
+                    reward += 40
                     match = True
                     if self._num_delivered(state) == self.num_pass:
-                        done = True
+                        self._done = True
                     break
 
             if not match and (taxi_loc in self.locs):
@@ -181,7 +187,7 @@ class TaxiEnv:
         self._current_state = state
         self._total_reward += reward
         self._last_action = action
-        return int(self.encode(state)), reward, done, {}
+        return int(self.encode(state)), reward, self._done, {}
 
     def step(self, action: int) -> Tuple[int, int, bool, dict]:
         self._elapsed_steps += 1
@@ -190,6 +196,9 @@ class TaxiEnv:
             info["TimeLimit.truncated"] = not done
             done = True
         return state, reward, done, info
+
+    def is_done(self):
+        return self._done
 
     def print_state(self):
         print('current state:')
@@ -201,7 +210,16 @@ class TaxiEnv:
         for name, value in vars(self).items():
             print('%s=%s' % (name, value))
 
-    def render(self, has_text=True):
+    @staticmethod
+    def _clear_shell():
+        if platform.system() == 'Windows':
+            os.system('cls')
+        else:
+            os.system('clear')
+
+    def render(self, show_info=True, clear=True):
+        if clear:
+            self._clear_shell()
         outfile = sys.stdout
 
         out = self.desc.copy().tolist()
@@ -235,11 +253,12 @@ class TaxiEnv:
             out[1 + di][2 * dj + 1] = utils.colorize(out[1 + di][2 * dj + 1], "magenta")
 
         outfile.write("\n".join(["".join(row) for row in out]) + "\n")
-        if self._last_action is not None:
-            outfile.write(f"Last action: {self.EnumAction(self._last_action).name}")
-        outfile.write("\n")
 
-        if has_text:
+        if show_info:
+            outfile.write(f'Taxi Loc: ({state.taxi_row},{state.taxi_col})\n')
+            if self._last_action is not None:
+                outfile.write(f"Last action: {self.EnumAction(self._last_action).name}")
+            outfile.write("\n")
             outfile.write('Delivery list:\n')
             for i in range(self.num_pass):
                 origin_idx = self._origin_state.pass_idxes[i]
