@@ -364,5 +364,14 @@ def get_locs(row: int, col: int):
 
 def get_sub_env(env_str: List[str], sub_row: int, sub_col: int,
                 num_pass: int, seed: int = 0) -> TaxiEnv:
+    """
+    获取子地图对应的TaxiEnv环境
+    :param env_str: 目标地图的字符串列表
+    :param sub_row: 地图有效行数
+    :param sub_col: 地图有效列数
+    :param num_pass: 乘客数
+    :param seed: 随机数种子
+    :return: 生成的TaxiEnv环境对象
+    """
     env_map = get_sub_map(env_str, sub_row, sub_col)
     return TaxiEnv(env_map, get_locs(sub_row, sub_col), num_pass, seed)
