@@ -1,17 +1,19 @@
 import random
 from collections import deque
 
-import gym
 import numpy as np
 from keras.layers import Input, Dense, Reshape, Embedding
 from keras.models import Model
 from keras.optimizers import Adam
 
+import config
+from env import TaxiEnv
+
 
 class DQN:
     def __init__(self, load_weight):
         self.load_weight = load_weight
-        self.env = gym.make("Taxi-v3")
+        self.env = TaxiEnv(config.ENV_MAP, config.PASS_LOCS, config.NUM_PASS, seed=0)
         # 训练网络模型
         self.model = self.build_model()
         # 目标网络模型
@@ -34,7 +36,7 @@ class DQN:
         """构建深度学习网络"""
         # 输入的维度,即环境可能的状态的维度,taxi-v3游戏中是1维
         input_length = 1
-        action_size = self.env.action_space.n
+        action_size = self.env.n_action
         # 输入层:初始化深度学习网络输入层的tensor,输入是1为的向量
         input = Input(shape=(input_length,), name="input")
         # 嵌入层:模型第一层,将正整数(下标)转换为具有固定大小的向量
@@ -159,13 +161,13 @@ class DQN:
         # 每训练5次后的历史
         history = {'episode': [], 'Episode_reward': [], 'Loss': []}
 
-        count = 0   # 训练次数
+        count = 0  # 训练次数
         for i in range(episode):
             state = self.env.reset()
-            reward_sum = 0      # 一次游戏的总回报
-            loss = np.infty     # 初始化为正无穷
+            reward_sum = 0  # 一次游戏的总回报
+            loss = np.infty  # 初始化为正无穷
             done = False
-            action_number = 0   # 一次游戏中行为的总次数
+            action_number = 0  # 一次游戏中行为的总次数
             while not done and action_number < max_action_number:
                 # 通过贪婪选择法ε-greedy选择action。
                 x = state
@@ -219,9 +221,9 @@ class DQN:
 
             x = state
             # 训练网络当前状态预测得到的行为价值表
-            q_values = self.model.predict([int(x)])[0]
+            q_values: np.ndarray = self.model.predict([int(x)])[0]
             # 取最大价值的动作
-            action = np.argmax(q_values)
+            action = int(np.argmax(q_values))
             state, reward, done, _ = self.env.step(action)
 
             count += 1
@@ -233,8 +235,6 @@ class DQN:
                 reward_sum = 0
                 count = 0
                 state = self.env.reset()
-
-        self.env.close()
 
 
 if __name__ == '__main__':
