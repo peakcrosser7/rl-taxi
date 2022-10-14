@@ -20,12 +20,12 @@ class TaxiEnv:
 
     class EnumReward:
         MOVE = -1
+        # WRONG_OPT = -10
+        # RIGHT_PICK = 0
+        # RIGHT_DROP = 20
         WRONG_OPT = -10
-        RIGHT_PICK = 0
+        RIGHT_PICK = 5
         RIGHT_DROP = 20
-        # WRONG_OPT = -20
-        # RIGHT_PICK = 10
-        # RIGHT_DROP = 40
 
     class State:
         def __init__(self):
