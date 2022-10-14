@@ -41,17 +41,18 @@ env.render()
 policy = EpsilonGreedyPolicy(epsilon=0.01)
 
 
-def taxi(agent: Agent, train_times, test_times=100):
+def taxi(agent: Agent, train_times=10000, test_times=100):
     print(agent.__class__.__name__ + ":")
     agent.train(train_times)
     agent.test(test_times)
 
-# taxi(SarsaAgent(env, policy), 3000, 100)
-#
-# taxi(SarsaLambdaAgent(env, policy), 5000)
-#
-# taxi(QLearningAgent(env, policy), 4000)
-#
-# taxi(ExpectedSarsaAgent(env, policy), 5000)
-#
-# taxi(DoubleQLearningAgent(env, policy), 9000)
+
+taxi(SarsaAgent(env, policy))
+
+taxi(SarsaLambdaAgent(env, policy))
+
+taxi(QLearningAgent(env, policy))
+
+taxi(ExpectedSarsaAgent(env, policy))
+
+taxi(DoubleQLearningAgent(env, policy))
