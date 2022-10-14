@@ -20,9 +20,12 @@ class TaxiEnv:
 
     class EnumReward:
         MOVE = -1
-        WRONG_OPT = -20
-        RIGHT_PICK = 10
-        RIGHT_DROP = 40
+        WRONG_OPT = -10
+        RIGHT_PICK = 0
+        RIGHT_DROP = 20
+        # WRONG_OPT = -20
+        # RIGHT_PICK = 10
+        # RIGHT_DROP = 40
 
     class State:
         def __init__(self):
@@ -65,6 +68,16 @@ class TaxiEnv:
         self._current_state = copy.deepcopy(self._origin_state)
         self._last_action = None
 
+    def reset(self) -> State:
+        self._elapsed_steps = 0
+        self._total_reward = 0
+        self._done = False
+        self._delivered = [False for _ in range(self._num_pass)]
+        self._origin_state = self._init_state()
+        self._current_state = copy.deepcopy(self._origin_state)
+        self._last_action = None
+        return self.encode(self._current_state)
+
     def _init_state(self) -> State:
         loop = True
         while loop:
@@ -85,14 +98,6 @@ class TaxiEnv:
 
     def seed(self, seed: int):
         self._rng = np.random.RandomState(seed)
-
-    def reset(self) -> State:
-        self._elapsed_steps = 0
-        self._total_reward = 0
-        self._origin_state = self._init_state()
-        self._current_state = copy.deepcopy(self._origin_state)
-        self._last_action = None
-        return self.encode(self._current_state)
 
     def encode(self, state: State):
         opt = state.taxi_row
@@ -188,6 +193,7 @@ class TaxiEnv:
             for i in range(self._num_pass):
                 pass_loc = state.pass_locs[i]
                 dst_loc = state.dst_locs[i]
+                # 出租车在目的地且乘客在车上
                 if taxi_loc == self.locs[dst_loc] and self._in_taxi(pass_loc):
                     self._get_off_taxi(state.pass_locs, i, dst_loc)
                     self._delivered[i] = True
@@ -196,20 +202,22 @@ class TaxiEnv:
                     if self._num_delivered() == self._num_pass:
                         self._done = True
                     break
+            # 在错误地点下车或出租车上没有人
             if not match:
-                if taxi_loc in self.locs:
-                    in_taxi = []
-                    for i in range(self._num_pass):
-                        pass_loc = state.pass_locs[i]
-                        if self._in_taxi(pass_loc):
-                            in_taxi.append(i)
-                    if len(in_taxi) > 0:
-                        off = np.random.randint(len(in_taxi))
-                        off_pass = in_taxi[off]
-                        self._get_off_taxi(state.pass_locs, off_pass, self.locs.index(taxi_loc))
-                else:
-                    # 若没有人在车上却下车/出租车不在locs中记录的位置下车,则扣10分
-                    reward += self.EnumReward.WRONG_OPT
+                reward += self.EnumReward.WRONG_OPT
+                # if taxi_loc in self.locs:
+                #     in_taxi = []
+                #     for i in range(self._num_pass):
+                #         pass_loc = state.pass_locs[i]
+                #         if self._in_taxi(pass_loc):
+                #             in_taxi.append(i)
+                #     if len(in_taxi) > 0:
+                #         off = np.random.randint(len(in_taxi))
+                #         off_pass = in_taxi[off]
+                #         self._get_off_taxi(state.pass_locs, off_pass, self.locs.index(taxi_loc))
+                # else:
+                #     # 若没有人在车上却下车/出租车不在locs中记录的位置下车,则扣10分
+                #     reward += self.EnumReward.WRONG_OPT
 
         self._current_state = state
         self._total_reward += reward
@@ -287,7 +295,7 @@ class TaxiEnv:
 
         outfile.write("\n".join(["".join(row) for row in out]) + "\n")
 
-        self.print_state()
+        # self.print_state()
         if show_info:
             outfile.write(f'Taxi Loc: ({state.taxi_row},{state.taxi_col})\n')
             if self._last_action is not None:
