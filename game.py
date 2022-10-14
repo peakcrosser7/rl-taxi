@@ -2,32 +2,12 @@ import time
 
 import keyboard
 
+import config
 from env import TaxiEnv
 
 
 def game():
-    env_map = [
-        "+-----------------------------+",
-        "|R: : : | | : | : : | : | : : |",
-        "| : | : | : : | : : | : |G: : |",
-        "| : | : | : : : : : | : : : | |",
-        "| : | : : : | : | : | : : : | |",
-        "| : : : | : | : : : : : | : : |",
-        "| : : | | : | : | : : : | | : |",
-        "| | : | : : : | | : | : : | : |",
-        "| | : : | | : | | : | : : | | |",
-        "| : | : : | : : : : : : | : : |",
-        "| : | : : | : : | : : | : | : |",
-        "| | : | : : | : : | : | : : | |",
-        "| : : | | : : : | : | : : | : |",
-        "| : : : | : | : | | :B: | : : |",
-        "| : | : : | : | : | : : | | : |",
-        "|Y| : : : | : | : : : | : | : |",
-        "+-----------------------------+"
-    ]
-
-    pass_locs = {'R': (0, 0), 'G': (1, 12), 'B': (12, 10), 'Y': (14, 0)}
-    taxi_env = TaxiEnv(env_map, pass_locs, 2)
+    taxi_env = TaxiEnv(config.ENV_MAP, config.PASS_LOCS, config.NUM_PASS)
     taxi_env.render()
 
     done = False
@@ -41,7 +21,7 @@ def game():
             action = 2
         elif keyboard.is_pressed('left'):
             action = 3
-        elif keyboard.is_pressed('s'):  # if key 'enter' is pressed
+        elif keyboard.is_pressed('s'):
             action = 4
         elif keyboard.is_pressed('x'):
             action = 5
@@ -50,7 +30,7 @@ def game():
         if action is not None:
             taxi_env.step(action)
             taxi_env.render()
-            time.sleep(1)
+            time.sleep(0.3)
         if taxi_env.is_done():
             done = True
 

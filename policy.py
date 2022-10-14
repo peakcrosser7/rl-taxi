@@ -19,11 +19,13 @@ class GreedyPolicy(PolicyObj):
 class EpsilonGreedyPolicy(PolicyObj):
     """ε-greedy搜索策略"""
 
-    def __init__(self, epsilon=0.01):
+    def __init__(self, epsilon=0.01, epsilon_min=0.01, epsilon_decay=0.01):
         """
         :param epsilon:探索概率
         """
         self.epsilon = epsilon
+        self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
 
     def policy(self, state: int, Q: np.ndarray) -> np.intc:
         # # numpy.random.uniform():从0~1中随机采样
@@ -36,3 +38,10 @@ class EpsilonGreedyPolicy(PolicyObj):
             # 使用ε的概率在所有可选行为中随机选择
             action = np.random.randint(Q.shape[1])
         return action
+
+    def update_epsilon(self, episode):
+        """更新epsilon
+        """
+        if self.epsilon > self.epsilon_min:
+            # self.epsilon *= self.epsilon_decay
+            self.epsilon = self.epsilon_min + (1 - self.epsilon_min) * np.exp(-self.epsilon_decay * episode)

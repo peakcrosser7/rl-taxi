@@ -4,17 +4,18 @@ import gym
 import numpy as np
 from matplotlib import pyplot as plt
 
+from env import TaxiEnv
 from policy import GreedyPolicy
 
 
 class Agent:
-    def __init__(self, env: gym.Env, policy_obj):
+    def __init__(self, env: TaxiEnv, policy_obj):
         """
         :param env: 强化学习使用的游戏环境
         :param policy_obj: 策略方法对象
         """
         # 强化学习使用的游戏环境
-        self.env: gym.Env = env
+        self.env: TaxiEnv = env
         # 使用的策略对象
         self.policy_obj = policy_obj
 

@@ -8,7 +8,7 @@ class SarsaLambdaAgent(SarsaAgent):
         SarsaAgent.__init__(self, env, policy_obj, gamma, learning_rate)
         self.lamda: float = lamda
         # E表(效用追迹表):状态维度(observation_space.n)×行为维度(action_space.n)大小的矩阵
-        self.E: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
+        self.E: np.ndarray = np.zeros((env.n_observation, env.n_action))
 
     def learn(self, state, action, reward, next_state, next_action, done):
         # for e in E: E(s,a)=λ*γ*E(s,a)

@@ -14,9 +14,9 @@ class ExpectedSarsaAgent(Agent):
         # 学习速率参数α
         self.learning_rate: float = learning_rate
         # 动作维度
-        self.action_n: int = env.action_space.n
+        self.action_n: int = env.n_action
         # Q表
-        self.Q: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
+        self.Q: np.ndarray = np.zeros((env.n_observation, env.n_action))
 
     def learn(self, state, action, reward, next_state, done):
         # 使用下一状态行为价值Q(S_{t+1},A')的期望E来更新TD目标

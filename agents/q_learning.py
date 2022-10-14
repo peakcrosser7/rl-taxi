@@ -12,8 +12,8 @@ class QLearningAgent(Agent):
         # 学习速率参数α
         self.learning_rate: float = learning_rate
         # 动作维度
-        self.action_n: int = env.action_space.n
-        self.Q: np.ndarray = np.zeros((env.observation_space.n, env.action_space.n))
+        self.action_n: int = env.n_action
+        self.Q: np.ndarray = np.zeros((env.n_observation, env.n_action))
         # 借鉴策略对象
         self.borrow_policy = borrow_policy
 
