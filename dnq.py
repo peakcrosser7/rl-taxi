@@ -7,13 +7,14 @@ from keras.models import Model
 from keras.optimizers import Adam
 
 import config
+import env
 from env import TaxiEnv
 
 
 class DQN:
     def __init__(self, load_weight):
         self.load_weight = load_weight
-        self.env = TaxiEnv(config.ENV_MAP, config.PASS_LOCS, config.NUM_PASS, seed=0)
+        self.env: TaxiEnv = env.get_sub_env(config.ENV_MAP, 5, 5, 1)
         # 训练网络模型
         self.model = self.build_model()
         # 目标网络模型
@@ -44,7 +45,7 @@ class DQN:
         # output_dim:转换成的向量的维度,是全连接嵌入的维度
         # input_length:输入序列的长度
         # 对输入向量进行嵌入层处理:将500种1维状态转换为500种10维向量
-        layer = Embedding(500, 10, input_length=1)(input)
+        layer = Embedding(self.env.n_observation, 10, input_length=1)(input)
         # 重构层:将一定维度的多维矩阵重新构造为一个新的元素数量相同但是维度尺寸不同的矩阵
         # target_shape:目标尺寸为10
         # 对嵌入层输出重构,将原来500*1的10维向量矩阵其转换为500*10的矩阵

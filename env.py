@@ -319,3 +319,50 @@ class TaxiEnv:
             if self.is_done():
                 outfile.write('GAME DONE\n')
             outfile.write(f'TOTAL REWARD: {format(self._total_reward)}\n')
+
+
+def get_sub_map(env_map: List[str], sub_row: int, sub_col: int) -> List[str]:
+    """
+    获取地图的子地图\n
+    注:行列数均表示出租车可处于的位置的行列数
+    :param env_map: 原始地图的字符串列表
+    :param sub_row: 子地图有效行数
+    :param sub_col: 子地图有效列数
+    :return: 子地图的字符串列表
+    """
+    if sub_row == 0 or sub_col == 0:
+        return ['']
+
+    row = len(env_map) - 2
+    col = int((len(env_map[0]) - 1) / 2)
+    sub_row = min(row, sub_row) + 2
+    sub_col = min(col, sub_col) * 2 + 1
+
+    sub_map = []
+    wall = ['+']
+    for i in range(1, sub_col - 1):
+        wall.append('-')
+    wall.append('+')
+    wall = ''.join(wall)
+    sub_map.append(wall)
+    for i in range(1, sub_row - 1):
+        line = list(env_map[i][:sub_col])
+        line[sub_col - 1] = "|"
+        sub_map.append(''.join(line))
+    sub_map.append(wall)
+    return sub_map
+
+
+def get_locs(row: int, col: int):
+    return {
+        'R': (0, 0),
+        'G': (0, col - 1),
+        'B': (row - 1, col - 2),
+        'Y': (row - 1, 0)
+    }
+
+
+def get_sub_env(env_str: List[str], sub_row: int, sub_col: int,
+                num_pass: int, seed: int = 0) -> TaxiEnv:
+    env_map = get_sub_map(env_str, sub_row, sub_col)
+    return TaxiEnv(env_map, get_locs(sub_row, sub_col), num_pass, seed)

@@ -1,23 +1,23 @@
-# 的士调度 Taxi-v3
+# 的士调度 Taxi-v4
 
-import gym
 import numpy as np
 
 import config
-import taxi_env0
 from agents.agent import Agent
-from env import TaxiEnv
-from policy import EpsilonGreedyPolicy
 from agents.double_q_learning import DoubleQLearningAgent
 from agents.expected_sarsa import ExpectedSarsaAgent
 from agents.q_learning import QLearningAgent
 from agents.sarsa import SarsaAgent
 from agents.sarsa_lambda import SarsaLambdaAgent
+import env
+from env import TaxiEnv
+from policy import EpsilonGreedyPolicy
+
 
 # 环境使用
 np.random.seed(0)
 
-env = TaxiEnv(config.ENV_MAP, config.PASS_LOCS, config.NUM_PASS, seed=0)
+env: TaxiEnv = env.get_sub_env(config.ENV_MAP, 5, 5, 1)
 print('状态数量 = {}'.format(env.n_observation))
 print('动作数量 = {}'.format(env.n_action))
 
@@ -46,13 +46,12 @@ def taxi(agent: Agent, train_times, test_times=100):
     agent.train(train_times)
     agent.test(test_times)
 
-
-taxi(SarsaAgent(env, policy), 3000, 100)
-
-taxi(SarsaLambdaAgent(env, policy), 5000)
-
-taxi(QLearningAgent(env, policy), 4000)
-
-taxi(ExpectedSarsaAgent(env, policy), 5000)
-
-taxi(DoubleQLearningAgent(env, policy), 9000)
+# taxi(SarsaAgent(env, policy), 3000, 100)
+#
+# taxi(SarsaLambdaAgent(env, policy), 5000)
+#
+# taxi(QLearningAgent(env, policy), 4000)
+#
+# taxi(ExpectedSarsaAgent(env, policy), 5000)
+#
+# taxi(DoubleQLearningAgent(env, policy), 9000)
