@@ -37,8 +37,8 @@ class TaxiEnv:
     def __init__(self, map_str: List[str],
                  locs_dict: Dict[str, Tuple[int, int]],
                  num_pass: int,
-                 max_steps=200,
-                 seed=None
+                 seed=None,
+                 max_steps=200
                  ):
         self._desc = np.asarray(map_str, dtype="c")
         self.locs = []
@@ -374,4 +374,6 @@ def get_sub_env(env_str: List[str], sub_row: int, sub_col: int,
     :return: 生成的TaxiEnv环境对象
     """
     env_map = get_sub_map(env_str, sub_row, sub_col)
-    return TaxiEnv(env_map, get_locs(sub_row, sub_col), num_pass, seed)
+    for line in env_map:
+        print(line)
+    return TaxiEnv(env_map, get_locs(sub_row, sub_col), num_pass, seed=seed)

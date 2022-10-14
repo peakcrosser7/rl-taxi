@@ -13,7 +13,6 @@ import env
 from env import TaxiEnv
 from policy import EpsilonGreedyPolicy
 
-
 # 环境使用
 np.random.seed(0)
 
@@ -46,12 +45,13 @@ def taxi(agent: Agent, train_times, test_times=100):
     agent.train(train_times)
     agent.test(test_times)
 
-# taxi(SarsaAgent(env, policy), 3000, 100)
-#
-# taxi(SarsaLambdaAgent(env, policy), 5000)
-#
-# taxi(QLearningAgent(env, policy), 4000)
-#
-# taxi(ExpectedSarsaAgent(env, policy), 5000)
-#
-# taxi(DoubleQLearningAgent(env, policy), 9000)
+
+taxi(SarsaAgent(env, policy), 3000, 100)
+
+taxi(SarsaLambdaAgent(env, policy), 5000)
+
+taxi(QLearningAgent(env, policy), 4000)
+
+taxi(ExpectedSarsaAgent(env, policy), 5000)
+
+taxi(DoubleQLearningAgent(env, policy), 9000)
