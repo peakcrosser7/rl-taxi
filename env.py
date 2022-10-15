@@ -235,11 +235,19 @@ class TaxiEnv:
         """当前(未归一化的)总回报值"""
         return self._move_reward + self._opt_reward
 
+    def set_max_steps(self, step: int):
+        """设置最多可执行的步数"""
+        self._max_steps = step
+
     def step(self, action: int) -> Tuple[int, int, bool, dict]:
         """
         游戏执行一步动作
         :param action: 动作对应的整数
-        :returns: 该步执行后状态对应的整数, 该步的回报值, 是否结束游戏, 其他信息
+        :returns:
+            - state - 该步执行后状态对应的整数
+            - reward - 该步的回报值
+            - done - 是否结束游戏
+            - info - 其他信息
         """
         self._elapsed_steps += 1
         state, reward, done, info = self._step(action)

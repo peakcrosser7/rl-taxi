@@ -6,6 +6,7 @@ import numpy as np
 import config
 import env
 from agents.agent import Agent
+from agents.ddqn import DDQNAgent
 from agents.double_q_learning import DoubleQLearningAgent
 from agents.expected_sarsa import ExpectedSarsaAgent
 from agents.q_learning import QLearningAgent
@@ -55,12 +56,17 @@ def taxi(agent: Agent, train_times=10000, test_times=100):
 # taxi(SarsaAgent(env.get_sub_env(config.ENV_MAP, 10, 10, 1, seed=seed), policy))
 # taxi(SarsaAgent(env.get_sub_env(config.ENV_MAP, 15, 15, 1, seed=seed), policy))
 
-taxi(SarsaAgent(taxi_env, policy))
+# taxi(SarsaAgent(taxi_env, policy))
+#
+# taxi(SarsaLambdaAgent(taxi_env, policy))
+#
+# taxi(QLearningAgent(taxi_env, policy))
+#
+# taxi(ExpectedSarsaAgent(taxi_env, policy))
+#
+# taxi(DoubleQLearningAgent(taxi_env, policy))
 
-taxi(SarsaLambdaAgent(taxi_env, policy))
-
-taxi(QLearningAgent(taxi_env, policy))
-
-taxi(ExpectedSarsaAgent(taxi_env, policy))
-
-taxi(DoubleQLearningAgent(taxi_env, policy))
+ddqn_agent = DDQNAgent(env.get_sub_env(config.ENV_MAP, 5, 5, 1),
+                       './agents/ddqn_weights.h5', max_steps=200)
+# ddqn_agent.train(500, 16)
+ddqn_agent.test(1)
