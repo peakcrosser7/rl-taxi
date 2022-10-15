@@ -26,7 +26,7 @@ class Agent:
             return GreedyPolicy.policy(state, Q)
 
     @abstractmethod
-    def play(self, train, render=False) -> int:
+    def play(self, train, render=False):
         raise NotImplementedError
 
     def train(self, episodes: int):
@@ -45,5 +45,5 @@ class Agent:
 
     def test(self, episodes: int = 100):
         episode_rewards = [self.play(train=False) for _ in range(episodes)]
-        print('平均回合奖励 = {} / {} = {}'.format(sum(episode_rewards),
-                                             len(episode_rewards), np.mean(episode_rewards)))
+        print('平均回合奖励 = {:.2f} / {} = {:.2f}'.format(sum(episode_rewards),
+                                                     len(episode_rewards), np.mean(episode_rewards)))

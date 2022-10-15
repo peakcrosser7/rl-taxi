@@ -30,18 +30,15 @@ class ExpectedSarsaAgent(Agent):
         # Q(S_t,A_t)=Q(S_t,A_t)+α(R_{t+1}+γ*E-Q(S_t,A_t))
         self.Q[state, action] += self.learning_rate * td_error
 
-    def play(self, train=False, render=False) -> int:
-        episode_reward = 0
+    def play(self, train=False, render=False) -> float:
         state = self.env.reset()
         while True:
             if render:
                 self.env.render()
             action = self.policy(train, state, self.Q)
             next_state, reward, done, _ = self.env.step(action)
-            episode_reward += reward
             if train:
                 self.learn(state, action, reward, next_state, done)
             if done:
-                break
+                return self.env.normalized_total_reward()
             state = next_state
-        return episode_reward
