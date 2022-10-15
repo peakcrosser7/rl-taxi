@@ -15,8 +15,6 @@ class SarsaAgent(Agent):
         self.gamma: float = gamma
         # 学习速率参数α
         self.learning_rate: float = learning_rate
-        # 动作维度
-        self.action_n: int = env.n_action
         # Q表(行为价值表):状态维度(observation_space.n)×行为维度(action_space.n)大小的矩阵
         # 每个元素表示状态行为对(S,A)的价值
         # 初始设置为全0

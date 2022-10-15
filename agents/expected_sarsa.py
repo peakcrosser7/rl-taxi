@@ -13,8 +13,6 @@ class ExpectedSarsaAgent(Agent):
         self.gamma: float = gamma
         # 学习速率参数α
         self.learning_rate: float = learning_rate
-        # 动作维度
-        self.action_n: int = env.n_action
         # Q表
         self.Q: np.ndarray = np.zeros((env.n_observation, env.n_action))
 

@@ -11,8 +11,6 @@ class DoubleQLearningAgent(Agent):
         self.gamma: float = gamma
         # 学习速率参数α
         self.learning_rate: float = learning_rate
-        # 动作维度
-        self.action_n: int = env.n_action
         # 两个Q表
         self.Q0: np.ndarray = np.zeros((env.n_observation, env.n_action))
         self.Q1: np.ndarray = np.zeros((env.n_observation, env.n_action))
@@ -54,4 +52,3 @@ class DoubleQLearningAgent(Agent):
             if done:
                 return self.env.normalized_total_reward()
             state = next_state
-
