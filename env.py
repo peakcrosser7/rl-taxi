@@ -162,11 +162,6 @@ class TaxiEnv:
     def current_state(self) -> int:
         return self.encode(self._current_state)
 
-    def taxi_at_locs(self, state: int) -> bool:
-        s = self.decode(state)
-        """返回出租车是否在地图中的地点"""
-        return (s.taxi_row, s.taxi_col) in self.locs
-
     @staticmethod
     def distance(loc1: Tuple[int, int], loc2: Tuple[int, int]) -> int:
         return int(math.fabs(loc1[0] - loc2[0]) + math.fabs(loc1[1] - loc2[1]))

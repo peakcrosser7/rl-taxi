@@ -17,11 +17,10 @@ class ExpectedSarsaAgent(Agent):
         self.Q: np.ndarray = np.zeros((env.n_observation, env.n_action))
 
     def learn(self, state, action, reward, next_state, done):
-        Q = self.Q if self.env.taxi_at_locs(next_state) else self.Q[:, :4]
         # 使用下一状态行为价值Q(S_{t+1},A')的期望E来更新TD目标
         # E_π[Q(S_{t+1},A_{t+1}|S_{t+1}]=sum_a(π(a|S_{t+1})Q(S_{t+1},a))
         # =ε*avg(Q(s,a))+(1-ε)*max(Q(s,a))
-        E = self.epsilon * Q[next_state].mean() + (1. - self.epsilon) * Q[next_state].max()
+        E = self.epsilon * self.Q[next_state].mean() + (1. - self.epsilon) * self.Q[next_state].max()
         # u=R_{t+1}+γ*E
         u = reward + self.gamma * E * (1. - done)
         # td_error=R_{t+1}+γ*E-Q(S_t,A_t)
@@ -34,8 +33,7 @@ class ExpectedSarsaAgent(Agent):
         while True:
             if render:
                 self.env.render()
-            Q = self.Q if self.env.taxi_at_locs(state) else self.Q[:, :4]
-            action = self.policy(train, state, Q)
+            action = self.policy(train, state, self.Q)
             next_state, reward, done, _ = self.env.step(action)
             if train:
                 self.learn(state, action, reward, next_state, done)

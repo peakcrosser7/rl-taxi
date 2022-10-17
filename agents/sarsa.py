@@ -40,16 +40,14 @@ class SarsaAgent(Agent):
         # 初始状态
         state = self.env.reset()
         # 初始行为:此时因初始Q表全为0而选择第一个行为
-        Q = self.Q if self.env.taxi_at_locs(state) else self.Q[:, :4]
-        action: np.intc = self.policy(train, state, Q)
+        action: np.intc = self.policy(train, state, self.Q)
         while True:
             if render:
                 self.env.render()
             # 执行一次动作,并得到新观察到的状态,奖励值,是否完成游戏
             next_state, reward, done, _ = self.env.step(action)
             # 根据新的状态进行决策(终止状态时此步无意义)
-            Q = self.Q if self.env.taxi_at_locs(next_state) else self.Q[:, :4]
-            next_action = self.policy(train, next_state, Q)
+            next_action = self.policy(train, next_state, self.Q)
             if train:
                 self.learn(state, action, reward, next_state, next_action, done)
             if done:

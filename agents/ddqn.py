@@ -122,13 +122,12 @@ class DDQNAgent:
         return states, y
 
     def _policy(self, state):
-        n_action = 6 if self.env.taxi_at_locs(state) else 4
         if np.random.rand() <= self.epsilon:
-            return random.randint(0, n_action - 1)
+            return random.randint(0, 5)
         else:
             # 根据输入得到预测的数组
             q_values = self.model.predict([state])[0]
-            return np.argmax(q_values[:n_action])
+            return np.argmax(q_values)
 
     def _update_epsilon(self, episode):
         """更新epsilon"""
