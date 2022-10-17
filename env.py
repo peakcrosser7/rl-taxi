@@ -20,7 +20,9 @@ class TaxiEnv:
         DROP_OFF = 5
 
     class EnumReward:
-        MOVE = -1
+        MOVE = -2
+        RIGHT_MOVE = 1
+        HIT_FENCE = -10
         # WRONG_OPT = -10
         # RIGHT_PICK = 0
         # RIGHT_DROP = 20
@@ -162,8 +164,27 @@ class TaxiEnv:
         """返回出租车是否在地图中的地点"""
         return (s.taxi_row, s.taxi_col) in self.locs
 
+    @staticmethod
+    def distance(loc1: Tuple[int, int], loc2: Tuple[int, int]) -> int:
+        return int(math.fabs(loc1[0] - loc2[0]) + math.fabs(loc1[1] - loc2[1]))
+
+    def _is_right_move(self, state: State, next_state: State) -> bool:
+        taxi_loc = (state.taxi_row, state.taxi_col)
+        taxi_next_loc = (next_state.taxi_row, next_state.taxi_col)
+        for i in range(self._num_pass):
+            pass_loc = state.pass_locs[i]
+            if self._in_taxi(pass_loc):
+                dst_loc = state.dst_locs[i]
+                if self.distance(taxi_next_loc, self.locs[dst_loc]) < self.distance(taxi_loc, self.locs[dst_loc]):
+                    return True
+            else:
+                if self.distance(taxi_next_loc, self.locs[pass_loc]) < self.distance(taxi_loc, self.locs[pass_loc]):
+                    return True
+        return False
+
     def _step(self, action: int) -> Tuple[int, int, bool, dict]:
         state = self._current_state
+        next_state = copy.deepcopy(self._current_state)
         reward = 0
         if self._done:
             return int(self.encode(state)), reward, self._done, {}
@@ -171,23 +192,36 @@ class TaxiEnv:
         taxi_loc = (row, col) = (state.taxi_row, state.taxi_col)
         act = self.EnumAction(action)
         if act == self.EnumAction.DOWN:
-            state.taxi_row = min(row + 1, self._num_rows - 1)
-            reward += self.EnumReward.MOVE
-            self._move_reward += self.EnumReward.MOVE
+            if row + 1 == self._num_rows:
+                reward += self.EnumReward.HIT_FENCE
+                self._move_reward += self.EnumReward.HIT_FENCE
+            else:
+                next_state.taxi_row += 1
+                self._move_reward += self.EnumReward.MOVE
         elif act == self.EnumAction.UP:
-            state.taxi_row = max(row - 1, 0)
-            reward += self.EnumReward.MOVE
-            self._move_reward += self.EnumReward.MOVE
+            if row - 1 == 0:
+                reward += self.EnumReward.HIT_FENCE
+                self._move_reward += self.EnumReward.HIT_FENCE
+            else:
+                next_state.taxi_row -= 1
+                reward += self.EnumReward.MOVE
+                self._move_reward += self.EnumReward.MOVE
         elif act == self.EnumAction.RIGHT:
             if self._desc[1 + row, 2 * col + 2] == b":":
-                state.taxi_col = min(col + 1, self._num_cols - 1)
-            reward += self.EnumReward.MOVE
-            self._move_reward += self.EnumReward.MOVE
+                next_state.taxi_col += 1
+                reward += self.EnumReward.MOVE
+                self._move_reward += self.EnumReward.MOVE
+            else:
+                reward += self.EnumReward.HIT_FENCE
+                self._move_reward += self.EnumReward.HIT_FENCE
         elif act == self.EnumAction.LEFT:
             if self._desc[1 + row, 2 * col] == b":":
-                state.taxi_col = max(col - 1, 0)
-            reward += self.EnumReward.MOVE
-            self._move_reward += self.EnumReward.MOVE
+                next_state.taxi_col -= 1
+                reward += self.EnumReward.MOVE
+                self._move_reward += self.EnumReward.MOVE
+            else:
+                reward += self.EnumReward.HIT_FENCE
+                self._move_reward += self.EnumReward.HIT_FENCE
         elif act == self.EnumAction.PICK_UP:
             match = False
             for i in range(self._num_pass):
@@ -195,7 +229,7 @@ class TaxiEnv:
                 # 若乘客不在车上且出租车在乘客的位置
                 if (not self._in_taxi(pass_loc)) and taxi_loc == self.locs[pass_loc] \
                         and (not self._is_delivered(i)):
-                    self._get_in_taxi(state.pass_locs, i)
+                    self._get_in_taxi(next_state.pass_locs, i)
                     reward += self.EnumReward.RIGHT_PICK
                     self._opt_reward += self.EnumReward.RIGHT_PICK
                     match = True
@@ -210,7 +244,7 @@ class TaxiEnv:
                 dst_loc = state.dst_locs[i]
                 # 出租车在目的地且乘客在车上
                 if taxi_loc == self.locs[dst_loc] and self._in_taxi(pass_loc):
-                    self._get_off_taxi(state.pass_locs, i, dst_loc)
+                    self._get_off_taxi(next_state.pass_locs, i, dst_loc)
                     self._delivered[i] = True
                     reward += self.EnumReward.RIGHT_DROP
                     self._opt_reward += self.EnumReward.RIGHT_DROP
@@ -223,12 +257,17 @@ class TaxiEnv:
                 reward += self.EnumReward.WRONG_OPT
                 self._opt_reward += self.EnumReward.WRONG_OPT
 
-        self._current_state = state
+        if self._is_right_move(state, next_state):
+            reward += self.EnumReward.RIGHT_MOVE
+            self._move_reward += self.EnumReward.RIGHT_MOVE
+
+        self._current_state = next_state
         self._last_action = action
-        return int(self.encode(state)), reward, self._done, {}
+        return int(self.encode(next_state)), reward, self._done, {}
 
     def _normalized_reward(self, move_reward: int, opt_reward: int) -> float:
-        move_ratio = 1 / math.sqrt(1. * self._num_rows * self._num_cols / 25)
+        # move_ratio = 1 / math.sqrt(1. * self._num_rows * self._num_cols / 25)
+        move_ratio = 5. / math.sqrt(1. * self._num_rows * self._num_cols)
         num_pass_ratio = 1. / self._num_pass
         return (move_ratio * move_reward + opt_reward) * num_pass_ratio
 
@@ -348,6 +387,7 @@ class TaxiEnv:
             if self.is_done():
                 outfile.write('GAME DONE\n')
             outfile.write('TOTAL REWARD: %d\n' % self.total_reward())
+            outfile.write('NORMALIZED REWARD: %.2f\n' % self.normalized_total_reward())
 
 
 def get_sub_map(env_map: List[str], sub_row: int, sub_col: int) -> List[str]:
