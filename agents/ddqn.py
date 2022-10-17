@@ -10,25 +10,28 @@ from env import TaxiEnv
 
 
 class DDQNAgent:
-    def __init__(self, env: TaxiEnv, weights_h5: str,
+    def __init__(self, env: TaxiEnv, weights_h5: str, is_weight=False,
                  gamma=0.95,
                  epsilon_min=0.001,
-                 max_steps=200
+                 max_steps=1000
                  ):
         # 游戏环境
         self.env: TaxiEnv = env
+        # 刚开始输入的字符串是否为可读取模型
+        self.is_weight = is_weight
         # 网络模型参数文件路径
         self.weights_h5: str = weights_h5
         # 训练网络模型
         self.model = self._build_model()
         # 目标网络模型
         self.target_model = self._build_model()
+
         # 经验回放机制使用的经验池
         self.memory_buffer = deque(maxlen=2000)
         self.gamma: float = gamma
         self.epsilon_decay = 0.01
         self.epsilon_min = epsilon_min
-        self.epsilon = self.epsilon_min if self.weights_h5 != "" else 1
+        self.epsilon = self.epsilon_min if is_weight else 1
         # 设置最大步数
         self.env.set_max_steps(max_steps)
 
@@ -63,7 +66,7 @@ class DDQNAgent:
         # 输出网络模型的信息状况
         model.summary()
         # 加载权重文件中的数据
-        if self.weights_h5:
+        if self.is_weight:
             # 加载网络中所有层的权重数据
             model.load_weights(self.weights_h5)
         return model
@@ -138,15 +141,25 @@ class DDQNAgent:
         # optimizer:优化器,通过比较预测和损耗函数来优化输入权重
         self.model.compile(loss='mse', optimizer=Adam(1e-3))
 
-        # 每训练5次后的历史
-        history = {'episode': [], 'episode_reward': [], 'loss': []}
         count = 0  # 训练次数
+
+        # 输出文件列表
+        file_train = open("train_output_history.csv", "w", encoding='utf-8')
+        train_output_file = [["episodes", "reward_sum", "reward_sum_normalized", "loss", "epsilon", "step_times"]]
+        row_txt = "{},{},{},{},{},{}".format("episodes", "reward_sum", "reward_sum_normalized", "loss", "epsilon",
+                                            "step_times")
+        file_train.write(row_txt)
+        file_train.write('\n')
+        file_train.close()
+
         for i in range(episodes):
             state = self.env.reset()
             # reward_sum = 0  # 一次游戏的总回报
             loss = np.infty  # 初始化为正无穷
             done = False
+            step_times = 0  # 每次游戏走的步数
             while not done:
+
                 # 通过贪婪选择法ε-greedy选择action
                 action = self._policy(state)
                 next_state, reward, done, _ = self.env.step(action)
@@ -154,12 +167,12 @@ class DDQNAgent:
                 self._remember(state, action, reward, next_state, done)
 
                 # 当经验池值数据足够batch_size大小时进行训练
-                if len(self.memory_buffer) > batch_size:
+                if len(self.memory_buffer) > batch_size * 10:
                     # X:采样的状态数组,y:训练网络当前状态的行为价值表
                     X, y = self.process_batch(batch_size)
                     # 对数据进行训练
                     loss = self.model.train_on_batch(X, y)
-
+                    step_times += 1
                     count += 1
                     # 固定次数更新目标网络
                     if count != 0 and count % batch_size == 0:
@@ -168,20 +181,32 @@ class DDQNAgent:
 
             # 减小epsilon-greedy的epsilon参数
             self._update_epsilon(i)
-            if i % 5 == 0:
-                reward_sum = self.env.normalized_total_reward()
-                history['episode'].append(i)
-                history['episode_reward'].append(reward_sum)
-                history['loss'].append(loss)
-                if i % 10 == 0:
-                    # 若总回报超过6返回
-                    if reward_sum > 6:
-                        return history
-                    print('episode: {} | episode reward: {.2f} | loss: {:.4f} | epsilon:{:.2f}'
-                          .format(i, reward_sum, loss, self.epsilon))
+
+            reward_sum_normalized = self.env.normalized_total_reward()
+            reward_sum = self.env.total_reward()
+
+            # 将每一次训练历史写入文件列表
+            train_output_file.append([i, reward_sum, loss, self.epsilon, step_times])
+
+            # 每次训练完写入一行
+            file_train = open("train_output_history.csv", "a", encoding='utf-8')
+            row_txt = "{},{},{},{},{},{}".format(i, reward_sum, reward_sum_normalized, loss, self.epsilon, step_times)
+            file_train.write(row_txt)
+            file_train.write('\n')
+            file_train.close()
+
+            if i % 10 == 0:
+                # 若总回报超过6返回
+                # if reward_sum > 6:
+                #   return history
+                self.model.save_weights(self.weights_h5)
+                print('episode: {} | episode reward: {:.2f} | loss: {:.4f} | epsilon:{:.2f}'
+                      .format(i, reward_sum, loss, self.epsilon))
+
             if save_weights:
                 self.model.save_weights(self.weights_h5)
-        return history
+
+        return train_output_file
 
     def test(self, episodes: int, render=False):
         """使用训练好的模型测试游戏"""
