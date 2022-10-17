@@ -159,8 +159,8 @@ class TaxiEnv:
             delivered += d
         return delivered
 
-    def current_state(self) -> State:
-        return self._current_state
+    def current_state(self) -> int:
+        return self.encode(self._current_state)
 
     def taxi_at_locs(self, state: int) -> bool:
         s = self.decode(state)
@@ -180,7 +180,7 @@ class TaxiEnv:
                 dst_loc = state.dst_locs[i]
                 if self.distance(taxi_next_loc, self.locs[dst_loc]) < self.distance(taxi_loc, self.locs[dst_loc]):
                     return True
-            else:
+            elif not self._is_delivered(i):
                 if self.distance(taxi_next_loc, self.locs[pass_loc]) < self.distance(taxi_loc, self.locs[pass_loc]):
                     return True
         return False
@@ -202,7 +202,7 @@ class TaxiEnv:
                 next_state.taxi_row += 1
                 self._move_reward += self.EnumReward.MOVE
         elif act == self.EnumAction.UP:
-            if row - 1 == 0:
+            if row == 0:
                 reward += self.EnumReward.HIT_FENCE
                 self._move_reward += self.EnumReward.HIT_FENCE
             else:
