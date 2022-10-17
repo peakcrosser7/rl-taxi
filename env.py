@@ -159,6 +159,9 @@ class TaxiEnv:
             delivered += d
         return delivered
 
+    def current_state(self) -> State:
+        return self._current_state
+
     def taxi_at_locs(self, state: int) -> bool:
         s = self.decode(state)
         """返回出租车是否在地图中的地点"""
