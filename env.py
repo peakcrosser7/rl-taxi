@@ -157,9 +157,10 @@ class TaxiEnv:
             delivered += d
         return delivered
 
-    def taxi_at_locs(self) -> bool:
+    def taxi_at_locs(self, state: int) -> bool:
+        s = self.decode(state)
         """返回出租车是否在地图中的地点"""
-        return (self._current_state.taxi_row, self._current_state.taxi_col) in self.locs
+        return (s.taxi_row, s.taxi_col) in self.locs
 
     def _step(self, action: int) -> Tuple[int, int, bool, dict]:
         state = self._current_state
