@@ -18,6 +18,7 @@ class DoubleQLearningAgent(Agent):
         self.borrow_policy = borrow_policy
 
     def behavioral_strategy(self, train: bool, state, Q):
+        Q = Q if self.env.taxi_at_locs(state) else Q[:, :4]
         return self.policy(train, state, Q)
 
     def borrowing_strategy(self, state, Q):
@@ -25,6 +26,7 @@ class DoubleQLearningAgent(Agent):
         借鉴策略
         使用贪婪策略
         """
+        Q = Q if self.env.taxi_at_locs(state) else Q[:, :4]
         return self.borrow_policy.policy(state, Q)
 
     def learn(self, state, action, reward, next_state, done):

@@ -18,10 +18,12 @@ class QLearningAgent(Agent):
 
     def behavioral_policy(self, train: bool, state, Q):
         """行为策略"""
+        Q = Q if self.env.taxi_at_locs(state) else Q[:, :4]
         return self.policy(train, state, Q)
 
     def borrowing_policy(self, state, Q):
         """借鉴策略"""
+        Q = Q if self.env.taxi_at_locs(state) else Q[:, :4]
         return self.borrow_policy.policy(state, Q)
 
     def learn(self, state, action, reward, next_state, done):
