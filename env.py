@@ -157,12 +157,15 @@ class TaxiEnv:
             delivered += d
         return delivered
 
+    def taxi_at_locs(self) -> bool:
+        """返回出租车是否在地图中的地点"""
+        return (self._current_state.taxi_row, self._current_state.taxi_col) in self.locs
+
     def _step(self, action: int) -> Tuple[int, int, bool, dict]:
         state = self._current_state
         reward = 0
-        info = {'loc': False}
         if self._done:
-            return int(self.encode(state)), reward, self._done, info
+            return int(self.encode(state)), reward, self._done, {}
 
         taxi_loc = (row, col) = (state.taxi_row, state.taxi_col)
         act = self.EnumAction(action)
@@ -219,12 +222,9 @@ class TaxiEnv:
                 reward += self.EnumReward.WRONG_OPT
                 self._opt_reward += self.EnumReward.WRONG_OPT
 
-        if taxi_loc in self.locs:
-            info['loc'] = True
-
         self._current_state = state
         self._last_action = action
-        return int(self.encode(state)), reward, self._done, info
+        return int(self.encode(state)), reward, self._done, {}
 
     def _normalized_reward(self, move_reward: int, opt_reward: int) -> float:
         move_ratio = 1 / math.sqrt(1. * self._num_rows * self._num_cols / 25)
