@@ -122,12 +122,13 @@ class DDQNAgent:
         return states, y
 
     def _policy(self, state):
+        n_action = 6 if self.env.taxi_at_locs(state) else 4
         if np.random.rand() <= self.epsilon:
-            return random.randint(0, 5)
+            return random.randint(0, n_action)
         else:
             # 根据输入得到预测的数组
             q_values = self.model.predict([state])[0]
-            return np.argmax(q_values)
+            return np.argmax(q_values[:n_action])
 
     def _update_epsilon(self, episode):
         """更新epsilon"""
@@ -147,7 +148,7 @@ class DDQNAgent:
         file_train = open("train_output_history.csv", "w", encoding='utf-8')
         train_output_file = [["episodes", "reward_sum", "reward_sum_normalized", "loss", "epsilon", "step_times"]]
         row_txt = "{},{},{},{},{},{}".format("episodes", "reward_sum", "reward_sum_normalized", "loss", "epsilon",
-                                            "step_times")
+                                             "step_times")
         file_train.write(row_txt)
         file_train.write('\n')
         file_train.close()
