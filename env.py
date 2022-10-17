@@ -1,4 +1,5 @@
 import copy
+import math
 import os
 import platform
 import sys
@@ -20,12 +21,12 @@ class TaxiEnv:
 
     class EnumReward:
         MOVE = -1
+        # WRONG_OPT = -10
+        # RIGHT_PICK = 0
+        # RIGHT_DROP = 20
         WRONG_OPT = -10
-        RIGHT_PICK = 0
+        RIGHT_PICK = 5
         RIGHT_DROP = 20
-        # WRONG_OPT = -20
-        # RIGHT_PICK = 10
-        # RIGHT_DROP = 40
 
     class State:
         def __init__(self):
@@ -59,18 +60,21 @@ class TaxiEnv:
         self.n_action = self.EnumAction.__len__()
         self.n_observation = num_rows * num_cols * (num_locs + 1) ** num_pass * num_locs ** num_pass
 
+        # self._total_reward = 0
+        self._move_reward = 0
+        self._opt_reward = 0
         self._elapsed_steps = 0
-        self._total_reward = 0
         self._done = False
         self._delivered = [False for _ in range(num_pass)]
         self._origin_state = self._init_state()
-        # self._origin_state.taxi_col = self._origin_state.taxi_row = 0
         self._current_state = copy.deepcopy(self._origin_state)
         self._last_action = None
 
     def reset(self) -> State:
+        # self._total_reward = 0
+        self._move_reward = 0
+        self._opt_reward = 0
         self._elapsed_steps = 0
-        self._total_reward = 0
         self._done = False
         self._delivered = [False for _ in range(self._num_pass)]
         self._origin_state = self._init_state()
@@ -164,17 +168,21 @@ class TaxiEnv:
         if act == self.EnumAction.DOWN:
             state.taxi_row = min(row + 1, self._num_rows - 1)
             reward += self.EnumReward.MOVE
+            self._move_reward += self.EnumReward.MOVE
         elif act == self.EnumAction.UP:
             state.taxi_row = max(row - 1, 0)
             reward += self.EnumReward.MOVE
+            self._move_reward += self.EnumReward.MOVE
         elif act == self.EnumAction.RIGHT:
             if self._desc[1 + row, 2 * col + 2] == b":":
                 state.taxi_col = min(col + 1, self._num_cols - 1)
             reward += self.EnumReward.MOVE
+            self._move_reward += self.EnumReward.MOVE
         elif act == self.EnumAction.LEFT:
             if self._desc[1 + row, 2 * col] == b":":
                 state.taxi_col = max(col - 1, 0)
             reward += self.EnumReward.MOVE
+            self._move_reward += self.EnumReward.MOVE
         elif act == self.EnumAction.PICK_UP:
             match = False
             for i in range(self._num_pass):
@@ -184,10 +192,12 @@ class TaxiEnv:
                         and (not self._is_delivered(i)):
                     self._get_in_taxi(state.pass_locs, i)
                     reward += self.EnumReward.RIGHT_PICK
+                    self._opt_reward += self.EnumReward.RIGHT_PICK
                     match = True
                     break  # 一步只接一个人
             if not match:
                 reward += self.EnumReward.WRONG_OPT
+                self._opt_reward += self.EnumReward.WRONG_OPT
         elif act == self.EnumAction.DROP_OFF:
             match = False
             for i in range(self._num_pass):
@@ -198,6 +208,7 @@ class TaxiEnv:
                     self._get_off_taxi(state.pass_locs, i, dst_loc)
                     self._delivered[i] = True
                     reward += self.EnumReward.RIGHT_DROP
+                    self._opt_reward += self.EnumReward.RIGHT_DROP
                     match = True
                     if self._num_delivered() == self._num_pass:
                         self._done = True
@@ -205,26 +216,39 @@ class TaxiEnv:
             # 在错误地点下车或出租车上没有人
             if not match:
                 reward += self.EnumReward.WRONG_OPT
-                # if taxi_loc in self.locs:
-                #     in_taxi = []
-                #     for i in range(self._num_pass):
-                #         pass_loc = state.pass_locs[i]
-                #         if self._in_taxi(pass_loc):
-                #             in_taxi.append(i)
-                #     if len(in_taxi) > 0:
-                #         off = np.random.randint(len(in_taxi))
-                #         off_pass = in_taxi[off]
-                #         self._get_off_taxi(state.pass_locs, off_pass, self.locs.index(taxi_loc))
-                # else:
-                #     # 若没有人在车上却下车/出租车不在locs中记录的位置下车,则扣10分
-                #     reward += self.EnumReward.WRONG_OPT
+                self._opt_reward += self.EnumReward.WRONG_OPT
 
         self._current_state = state
-        self._total_reward += reward
         self._last_action = action
         return int(self.encode(state)), reward, self._done, {}
 
+    def _normalized_reward(self, move_reward: int, opt_reward: int) -> float:
+        move_ratio = 1 / math.sqrt(1. * self._num_rows * self._num_cols / 25)
+        num_pass_ratio = 1. / self._num_pass
+        return (move_ratio * move_reward + opt_reward) * num_pass_ratio
+
+    def normalized_total_reward(self) -> float:
+        """当前归一化后的总回报值"""
+        return self._normalized_reward(self._move_reward, self._opt_reward)
+
+    def total_reward(self) -> int:
+        """当前(未归一化的)总回报值"""
+        return self._move_reward + self._opt_reward
+
+    def set_max_steps(self, step: int):
+        """设置最多可执行的步数"""
+        self._max_steps = step
+
     def step(self, action: int) -> Tuple[int, int, bool, dict]:
+        """
+        游戏执行一步动作
+        :param action: 动作对应的整数
+        :returns:
+            - state - 该步执行后状态对应的整数
+            - reward - 该步的回报值
+            - done - 是否结束游戏
+            - info - 其他信息
+        """
         self._elapsed_steps += 1
         state, reward, done, info = self._step(action)
         if self._elapsed_steps >= self._max_steps:
@@ -318,13 +342,12 @@ class TaxiEnv:
             outfile.write("\n")
             if self.is_done():
                 outfile.write('GAME DONE\n')
-            outfile.write(f'TOTAL REWARD: {format(self._total_reward)}\n')
+            outfile.write('TOTAL REWARD: %d\n' % self.total_reward())
 
 
 def get_sub_map(env_map: List[str], sub_row: int, sub_col: int) -> List[str]:
     """
-    获取地图的子地图\n
-    注:行列数均表示出租车可处于的位置的行列数
+    获取地图的子地图\n 注:行列数均表示出租车可处于的位置的行列数
     :param env_map: 原始地图的字符串列表
     :param sub_row: 子地图有效行数
     :param sub_col: 子地图有效列数
@@ -371,9 +394,7 @@ def get_sub_env(env_str: List[str], sub_row: int, sub_col: int,
     :param sub_col: 地图有效列数
     :param num_pass: 乘客数
     :param seed: 随机数种子
-    :return: 生成的TaxiEnv环境对象
+    :return: 生成的TaxiEnv环境对象,其中地点总为4个
     """
     env_map = get_sub_map(env_str, sub_row, sub_col)
-    for line in env_map:
-        print(line)
     return TaxiEnv(env_map, get_locs(sub_row, sub_col), num_pass, seed=seed)

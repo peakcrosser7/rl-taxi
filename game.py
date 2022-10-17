@@ -3,11 +3,12 @@ import time
 import keyboard
 
 import config
+import env
 from env import TaxiEnv
 
 
 def game():
-    taxi_env = TaxiEnv(config.ENV_MAP, config.PASS_LOCS, config.NUM_PASS)
+    taxi_env: TaxiEnv = env.get_sub_env(config.ENV_MAP, 5, 5, 1)
     taxi_env.render()
 
     done = False

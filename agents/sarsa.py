@@ -15,8 +15,6 @@ class SarsaAgent(Agent):
         self.gamma: float = gamma
         # 学习速率参数α
         self.learning_rate: float = learning_rate
-        # 动作维度
-        self.action_n: int = env.n_action
         # Q表(行为价值表):状态维度(observation_space.n)×行为维度(action_space.n)大小的矩阵
         # 每个元素表示状态行为对(S,A)的价值
         # 初始设置为全0
@@ -32,15 +30,13 @@ class SarsaAgent(Agent):
         # Q(S,A)+=α*(R+γ*Q(S',A')-Q(S,A))
         self.Q[state, action] += self.learning_rate * td_error
 
-    def play(self, train=False, render=False) -> int:
+    def play(self, train=False, render=False) -> float:
         """
         智能体与环境交互(直到游戏结束)
         :param train:是否为训练
         :param render:是否渲染执行步骤对应图像
         :return:本次交互(直到游戏结束)所获取的总奖励值
         """
-        # 本次游戏所获得的总奖励值
-        episode_reward = 0
         # 初始状态
         state = self.env.reset()
         # 初始行为:此时因初始Q表全为0而选择第一个行为
@@ -50,12 +46,11 @@ class SarsaAgent(Agent):
                 self.env.render()
             # 执行一次动作,并得到新观察到的状态,奖励值,是否完成游戏
             next_state, reward, done, _ = self.env.step(action)
-            episode_reward += reward
             # 根据新的状态进行决策(终止状态时此步无意义)
             next_action = self.policy(train, next_state, self.Q)
             if train:
                 self.learn(state, action, reward, next_state, next_action, done)
             if done:
-                break
+                # 返回归一化后本次游戏所获得的总奖励值
+                return self.env.normalized_total_reward()
             state, action = next_state, next_action
-        return episode_reward
