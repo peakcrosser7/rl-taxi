@@ -22,6 +22,7 @@ class TaxiEnv:
     class EnumReward:
         MOVE = -2
         RIGHT_MOVE = 1
+        BACK_MOVE = -5
         HIT_FENCE = -10
         # WRONG_OPT = -10
         # RIGHT_PICK = 0
@@ -71,6 +72,7 @@ class TaxiEnv:
         self._origin_state = self._init_state()
         self._current_state = copy.deepcopy(self._origin_state)
         self._last_action = None
+        self._last_taxi_loc = [0, 0]
 
     def reset(self) -> State:
         # self._total_reward = 0
@@ -82,6 +84,7 @@ class TaxiEnv:
         self._origin_state = self._init_state()
         self._current_state = copy.deepcopy(self._origin_state)
         self._last_action = None
+        self._last_taxi_loc = [0, 0]
         return self.encode(self._current_state)
 
     def _init_state(self) -> State:
@@ -255,10 +258,15 @@ class TaxiEnv:
                 reward += self.EnumReward.WRONG_OPT
                 self._opt_reward += self.EnumReward.WRONG_OPT
 
+        if (next_state.taxi_row, next_state.taxi_col) == self._last_taxi_loc:
+            reward += self.EnumReward.BACK_MOVE
+            self._move_reward += self.EnumReward.BACK_MOVE
+
         if self._is_right_move(state, next_state):
             reward += self.EnumReward.RIGHT_MOVE
             self._move_reward += self.EnumReward.RIGHT_MOVE
 
+        self._last_taxi_loc = taxi_loc
         self._current_state = next_state
         self._last_action = action
         return int(self.encode(next_state)), reward, self._done, {}

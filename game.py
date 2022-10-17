@@ -9,7 +9,7 @@ from env import TaxiEnv
 
 def game():
     seed = int(time.time_ns() % (2 ** 32))
-    taxi_env: TaxiEnv = env.get_sub_env(config.ENV_MAP, 8, 8, 2, seed=seed)
+    taxi_env: TaxiEnv = env.get_sub_env(config.ENV_MAP, 14, 14, 2, seed=seed)
     taxi_env.render()
 
     done = False
@@ -23,13 +23,11 @@ def game():
             action = 2
         elif keyboard.is_pressed('left'):
             action = 3
-        elif taxi_env.taxi_at_locs(taxi_env.current_state()):
-            if keyboard.is_pressed('s'):
-                action = 4
-            elif keyboard.is_pressed('x'):
-                action = 5
-
-        if keyboard.is_pressed('q'):
+        if keyboard.is_pressed('s'):
+            action = 4
+        elif keyboard.is_pressed('x'):
+            action = 5
+        elif keyboard.is_pressed('q'):
             done = True
         if action is not None:
             taxi_env.step(action)
