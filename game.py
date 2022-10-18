@@ -31,7 +31,7 @@ def game():
             done = True
         if action is not None:
             taxi_env.step(action)
-            taxi_env.render()
+            taxi_env.render(sleep=0.)
             time.sleep(0.3)
         if taxi_env.is_done():
             done = True

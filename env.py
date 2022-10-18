@@ -3,6 +3,7 @@ import math
 import os
 import platform
 import sys
+import time
 from enum import Enum
 from typing import List, Tuple, Dict
 
@@ -326,7 +327,7 @@ class TaxiEnv:
         else:
             os.system('clear')
 
-    def render(self, show_info=True, clear=True):
+    def render(self, show_info=True, clear=True, sleep: float = 0.1):
         if clear:
             self._clear_shell()
         outfile = sys.stdout
@@ -394,6 +395,8 @@ class TaxiEnv:
                 outfile.write('GAME DONE\n')
             outfile.write('TOTAL REWARD: %d\n' % self.total_reward())
             outfile.write('NORMALIZED REWARD: %.2f\n' % self.normalized_total_reward())
+        if sleep != 0.:
+            time.sleep(sleep)
 
 
 def get_sub_map(env_map: List[str], sub_row: int, sub_col: int) -> List[str]:
