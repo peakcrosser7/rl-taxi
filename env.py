@@ -25,9 +25,6 @@ class TaxiEnv:
         RIGHT_MOVE = 1
         BACK_MOVE = -5
         HIT_FENCE = -10
-        # WRONG_OPT = -10
-        # RIGHT_PICK = 0
-        # RIGHT_DROP = 20
         WRONG_OPT = -10
         RIGHT_PICK = 5
         RIGHT_DROP = 20
