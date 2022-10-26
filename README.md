@@ -23,7 +23,8 @@ Taxi-vx 游戏模型中, 奖励机制包括**移动奖励**和**操作奖励**�
     3. 将乘客成功接上车加 5 分 (+)
 * 注: 带 "(+)" 的奖励机制为 `gym` 中 Taxi-v3 中所不具有的奖励机制
 
-* 标准化奖励值公式: 
+* 标准化奖励值公式:   
+
 $$
 normalized\_rewards=(move\_rewards\times\sqrt\frac{5\times5}{m\times n}+opt\_rewards)\div t
 $$
